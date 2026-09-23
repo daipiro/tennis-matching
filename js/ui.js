@@ -1,5 +1,5 @@
 const $ = selector => document.querySelector(selector);
-const circle = id => String.fromCodePoint(0x245f + id);
+const circle = id => String(id);
 const el = (tag, className, content) => {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -19,11 +19,8 @@ function playerChip(id, streak, interactive, selected, resting = false) {
   return node;
 }
 
-export function renderMatchCard(match, { latest = false, title = `第${match.matchNumber}試合`, interactive = false, selected = null } = {}) {
+export function renderMatchCard(match, { latest = false, interactive = false, selected = null } = {}) {
   const card = el('article', `match-card ${latest ? 'latest-card' : 'past-card'}`);
-  const heading = el('h3', '', title);
-  if (latest) heading.append(el('span', 'card-tag', '最新の試合'));
-  card.append(heading);
   const teams = el('div', 'teams');
   const a = el('div', 'team'), b = el('div', 'team');
   for (const id of match.teamA) a.append(playerChip(id, match.streakSnapshot[id] || 0, interactive, selected));
@@ -39,7 +36,6 @@ export function renderMatchCard(match, { latest = false, title = `第${match.mat
 
 function renderHistory(state) {
   const container = $('#history'); container.replaceChildren();
-  $('#history-count').textContent = `${state.history.length}試合`;
   if (!state.history.length) container.append(el('p', 'empty', 'まだ試合はありません。'));
   const latest = state.history.at(-1);
   state.history.forEach(match => container.append(renderMatchCard(match, { latest: match === latest })));

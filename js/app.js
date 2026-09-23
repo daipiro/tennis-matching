@@ -1,7 +1,7 @@
-import { appendMatch, changeCount, newSession, setMaxStreak, toggleForcedRest, undoLatest } from './state.js?v=34';
-import { generateMatch } from './matchGenerator.js?v=34';
-import { loadState, saveState } from './storage.js?v=34';
-import { render } from './ui.js?v=34';
+import { appendMatch, changeCount, newSession, setMaxStreak, toggleForcedRest, undoLatest } from './state.js?v=40';
+import { generateMatch } from './matchGenerator.js?v=40';
+import { loadState, saveState } from './storage.js?v=40';
+import { render } from './ui.js?v=40';
 
 let state = loadState(), nextMatch, selected = null;
 function createNextMatch() {
