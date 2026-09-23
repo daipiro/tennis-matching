@@ -19,18 +19,21 @@ function playerChip(id, streak, interactive, selected, resting = false) {
   return node;
 }
 
-export function renderMatchCard(match, { current = false, latest = false, selected = null } = {}) {
-  const card = el('article', `match-card ${current ? 'current-card' : latest ? 'latest-card' : 'past-card'}`);
+export function renderMatchCard(match, { latest = false } = {}) {
+  const card = el('article', `match-card ${latest ? 'latest-card' : 'past-card'}`);
   const heading = el('h3', '', `第${match.matchNumber}試合`);
-  if (current) heading.append(el('span', 'card-tag', ' 最新の確定試合'));
+  if (latest) heading.append(el('span', 'card-tag', '最新の試合'));
   card.append(heading);
   const teams = el('div', 'teams');
   const a = el('div', 'team'), b = el('div', 'team');
-  for (const id of match.teamA) a.append(playerChip(id, match.streakSnapshot[id] || 0, current, selected));
-  for (const id of match.teamB) b.append(playerChip(id, match.streakSnapshot[id] || 0, current, selected));
+  for (const id of match.teamA) a.append(playerChip(id, match.streakSnapshot[id] || 0, false));
+  for (const id of match.teamB) b.append(playerChip(id, match.streakSnapshot[id] || 0, false));
   teams.append(a, el('span', 'vs', 'VS'), b);
-  const rest = el('p', 'match-rest', '休息');
-  rest.append(el('strong', '', match.resting.map(circle).join('  ')));
+  const rest = el('div', 'match-rest');
+  rest.append(el('span', 'match-rest-label', '休息'));
+  const restingPlayers = el('div', 'roster-list match-rest-players');
+  for (const id of match.resting) restingPlayers.append(playerChip(id, 0, false, null, true));
+  rest.append(restingPlayers);
   card.append(teams, rest);
   return card;
 }
@@ -53,13 +56,12 @@ function renderRoster(state, selected) {
   $('#resting-count').textContent = `${latest.resting.length}人`;
 }
 
-function renderHistory(state, visibleCount) {
+function renderHistory(state) {
   const container = $('#history'); container.replaceChildren();
   $('#history-count').textContent = `${state.history.length}試合`;
   if (!state.history.length) container.append(el('p', 'empty', 'まだ試合はありません。'));
-  const visible = state.history.slice(-visibleCount).reverse();
-  visible.forEach((match, index) => container.append(renderMatchCard(match, { latest: index === 0 })));
-  $('#more-history').hidden = state.history.length <= visibleCount;
+  const latest = state.history.at(-1);
+  state.history.forEach(match => container.append(renderMatchCard(match, { latest: match === latest })));
 }
 
 function renderSettings(state) {
@@ -102,14 +104,8 @@ function renderStats(state) {
   container.append(table);
 }
 
-export function render(state, { visibleCount = 3, selected = null } = {}) {
-  renderHistory(state, visibleCount);
-  const current = $('#current'); current.replaceChildren();
-  if (state.history.length) {
-    current.append(renderMatchCard(state.history.at(-1), { current: true, selected }));
-    current.append(el('p', 'swap-help', selected === null ? '番号を選び、交換先の番号をタップしてください。' : `交換元 ${circle(selected)} を選択中。交換先をタップしてください。`));
-  } else current.append(el('p', 'empty', '「次の試合」を押すと第1試合が確定します。'));
-  $('#current-status').textContent = state.history.length ? '確定済み' : '試合前';
+export function render(state, { selected = null } = {}) {
+  renderHistory(state);
   renderRoster(state, selected);
   $('#undo-match').disabled = !state.history.length;
   $('#notice').textContent = state.notice || '';

@@ -1,11 +1,11 @@
 import { appendMatch, changeCount, newSession, setMaxStreak, swapLatest, toggleForcedRest, undoLatest } from './state.js';
 import { generateMatch } from './matchGenerator.js';
 import { loadState, saveState } from './storage.js';
-import { render } from './ui.js';
+import { render } from './ui.js?v=7';
 
-let state = loadState(), visibleCount = 3, selected = null;
+let state = loadState(), selected = null;
 const refresh = () => {
-  render(state, { visibleCount, selected });
+  render(state, { selected });
   if (selected !== null) document.querySelector(`#playing [data-swap-id="${selected}"], #resting [data-swap-id="${selected}"]`)?.focus();
 };
 function commit(next) {
@@ -22,9 +22,8 @@ function attempt(action) {
 
 document.querySelector('#next-match').addEventListener('click', () => attempt(() => commit(appendMatch(state, generateMatch(state)))));
 document.querySelector('#undo-match').addEventListener('click', () => commit(undoLatest(state)));
-document.querySelector('#more-history').addEventListener('click', () => { visibleCount += 5; refresh(); });
 document.querySelector('#new-session').addEventListener('click', () => {
-  if (window.confirm('履歴と統計を消して新しいセッションを開始しますか？')) { visibleCount = 3; commit(newSession(state)); }
+  if (window.confirm('履歴と統計を消して新しいセッションを開始しますか？')) commit(newSession(state));
 });
 document.querySelector('.app-shell').addEventListener('click', event => {
   const chip = event.target.closest('[data-swap-id]');
