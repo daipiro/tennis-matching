@@ -10,6 +10,7 @@ const verifyMatch = match => {
   assert.equal(match.resting.length, match.activePlayers.length - 4);
   assert.deepEqual([...match.teamA, ...match.teamB, ...match.resting].sort((a, b) => a - b), match.activePlayers);
   assert.deepEqual(Object.keys(match.streakSnapshot).map(Number).sort((a, b) => a - b), [...match.teamA, ...match.teamB].sort((a, b) => a - b));
+  assert.deepEqual(Object.keys(match.restStreakSnapshot).map(Number).sort((a, b) => a - b), [...match.resting].sort((a, b) => a - b));
 };
 const memoryStorage = () => {
   const data = new Map();
@@ -63,6 +64,13 @@ test('上限を守れる候補を選び、必要時は違反人数を最小化�
   const playing = [...selection.teamA, ...selection.teamB];
   assert.equal(playing.filter(id => state.players[id].playStreak + 1 > 1).length, 3);
   assert.equal(createInitialState().players[1].maxStreak, null);
+});
+
+test('連続休息数を各試合に記録する', () => {
+  let state = createInitialState(5);
+  state = appendMatch(state, { teamA: [1, 2], teamB: [3, 4] }, 1);
+  state = appendMatch(state, { teamA: [1, 2], teamB: [3, 4] }, 2);
+  assert.equal(state.history.at(-1).restStreakSnapshot[5], 2);
 });
 
 test('3種類の交換で履歴・統計・ペア/対戦回数が再計算される', () => {

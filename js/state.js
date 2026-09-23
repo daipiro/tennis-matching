@@ -39,7 +39,12 @@ export function recompute(state) {
       const key = pairKey(a, b);
       opponentCounts[key] = (opponentCounts[key] || 0) + 1;
     }
-    const normalizedMatch = { ...match, matchNumber: history.length + 1, streakSnapshot: Object.fromEntries(playing.map(id => [id, players[id].playStreak])) };
+    const normalizedMatch = {
+      ...match,
+      matchNumber: history.length + 1,
+      streakSnapshot: Object.fromEntries(playing.map(id => [id, players[id].playStreak])),
+      restStreakSnapshot: Object.fromEntries(match.resting.map(id => [id, players[id].restStreak]))
+    };
     history.push(normalizedMatch);
     normalizedEvents.push({ type: 'match', match: normalizedMatch });
   }
@@ -56,7 +61,7 @@ export function changeCount(state, count) {
 }
 
 export function setMaxStreak(state, id, value) {
-  if (!ids.includes(id) || !(value === null || (Number.isInteger(value) && value >= 1 && value <= 99))) throw new RangeError('連続出場上限が無効です');
+  if (!ids.includes(id) || !(value === null || (Number.isInteger(value) && value >= 1 && value <= 4))) throw new RangeError('連続出場上限が無効です');
   return recompute({ ...state, maxStreaks: { ...state.maxStreaks, [id]: value }, notice: '' });
 }
 

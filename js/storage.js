@@ -28,7 +28,8 @@ function validate(raw) {
     } else throw Error('イベントが無効です');
   }
   if (new Set(raw.forcedRest).size !== raw.forcedRest.length || raw.forcedRest.some(id => !isId(id) || id > count) || count - raw.forcedRest.length < 4) throw Error('強制休息が無効です');
-  const state = recompute({ initialCount: raw.initialCount, participantCount: count, events: raw.events, maxStreaks: raw.maxStreaks, forcedRest: raw.forcedRest, notice: '' });
+  const maxStreaks = Object.fromEntries(Object.entries(raw.maxStreaks).map(([id, value]) => [id, value !== null && value > 4 ? null : value]));
+  const state = recompute({ initialCount: raw.initialCount, participantCount: count, events: raw.events, maxStreaks, forcedRest: raw.forcedRest, notice: '' });
   for (let i = 0; i < state.history.length; i++) {
     const saved = raw.events.filter(event => event.type === 'match')[i].match.streakSnapshot;
     if (JSON.stringify(saved) !== JSON.stringify(state.history[i].streakSnapshot)) throw Error('連続出場記録が一致しません');

@@ -1,5 +1,5 @@
-import { activeIds } from './state.js?v=28';
-import { compareScores, scorePlayers, scoreTeams } from './scoring.js?v=28';
+import { activeIds } from './state.js?v=34';
+import { compareScores, scorePlayers, scoreTeams } from './scoring.js?v=34';
 
 export function generateMatch(state, random = Math.random) {
   const ids = activeIds(state), choices = [];

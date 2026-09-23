@@ -1,7 +1,7 @@
-import { appendMatch, changeCount, newSession, setMaxStreak, toggleForcedRest, undoLatest } from './state.js?v=28';
-import { generateMatch } from './matchGenerator.js?v=28';
-import { loadState, saveState } from './storage.js?v=28';
-import { render } from './ui.js?v=28';
+import { appendMatch, changeCount, newSession, setMaxStreak, toggleForcedRest, undoLatest } from './state.js?v=34';
+import { generateMatch } from './matchGenerator.js?v=34';
+import { loadState, saveState } from './storage.js?v=34';
+import { render } from './ui.js?v=34';
 
 let state = loadState(), nextMatch, selected = null;
 function createNextMatch() {
@@ -11,7 +11,8 @@ function createNextMatch() {
     ...selection,
     matchNumber: state.history.length + 1,
     resting: Array.from({ length: state.participantCount }, (_, index) => index + 1).filter(id => !playing.includes(id)),
-    streakSnapshot: Object.fromEntries(playing.map(id => [id, state.players[id].playStreak + 1]))
+    streakSnapshot: Object.fromEntries(playing.map(id => [id, state.players[id].playStreak + 1])),
+    restStreakSnapshot: Object.fromEntries(Array.from({ length: state.participantCount }, (_, index) => index + 1).filter(id => !playing.includes(id)).map(id => [id, state.players[id].restStreak + 1]))
   };
 }
 const refresh = ({ regenerateNext = true } = {}) => {
@@ -65,7 +66,8 @@ document.querySelector('#next-match-preview').addEventListener('click', event =>
       teamA,
       teamB,
       resting,
-      streakSnapshot: Object.fromEntries(playing.map(player => [player, state.players[player].playStreak + 1]))
+      streakSnapshot: Object.fromEntries(playing.map(player => [player, state.players[player].playStreak + 1])),
+      restStreakSnapshot: Object.fromEntries(resting.map(player => [player, state.players[player].restStreak + 1]))
     };
     selected = null;
     refresh({ regenerateNext: false });
@@ -74,10 +76,11 @@ document.querySelector('#next-match-preview').addEventListener('click', event =>
 document.querySelector('#settings').addEventListener('click', event => {
   const button = event.target.closest('[data-force-id]');
   if (button) attempt(() => commit(toggleForcedRest(state, Number(button.dataset.forceId))));
+  const limit = event.target.closest('[data-max-id]');
+  if (limit) attempt(() => commit(setMaxStreak(state, Number(limit.dataset.maxId), limit.dataset.maxValue === '' ? null : Number(limit.dataset.maxValue))));
 });
 document.querySelector('#settings').addEventListener('change', event => {
   if (event.target.id === 'participant-count') attempt(() => commit(changeCount(state, Number(event.target.value))));
-  else if (event.target.matches('[data-max-id]')) attempt(() => commit(setMaxStreak(state, Number(event.target.dataset.maxId), event.target.value === '' ? null : Number(event.target.value))));
 });
 window.addEventListener('hashchange', showScreen);
 showScreen();

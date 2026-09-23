@@ -10,12 +10,12 @@ const el = (tag, className, content) => {
 function playerChip(id, streak, interactive, selected, resting = false) {
   const node = el(interactive ? 'button' : 'span', `player-chip streak-${Math.min(streak, 4)}${resting ? ' rest-chip' : ''}${interactive && selected === id ? ' selected' : ''}`);
   node.append(el('span', 'player-number', circle(id)));
-  if (streak > 0 && !resting) node.append(el('small', '', `×${streak}`));
+  if (streak > 1) node.append(el('small', '', `×${streak}`));
   if (interactive) {
     node.type = 'button'; node.dataset.swapId = String(id);
-    node.setAttribute('aria-label', `プレイヤー${id}${resting ? '、休息中' : `、連続出場${streak}試合`}。交換する`);
+    node.setAttribute('aria-label', `プレイヤー${id}${resting ? `、連続休息${streak}試合` : `、連続出場${streak}試合`}。交換する`);
     node.setAttribute('aria-pressed', selected === id ? 'true' : 'false');
-  } else node.setAttribute('aria-label', `プレイヤー${id}${resting ? '、休息中' : `、連続出場${streak}試合`}`);
+  } else node.setAttribute('aria-label', `プレイヤー${id}${resting ? `、連続休息${streak}試合` : `、連続出場${streak}試合`}`);
   return node;
 }
 
@@ -31,7 +31,7 @@ export function renderMatchCard(match, { latest = false, title = `第${match.mat
   teams.append(a, el('span', 'vs', 'VS'), b);
   const rest = el('div', 'match-rest');
   const restingPlayers = el('div', 'roster-list match-rest-players');
-  for (const id of match.resting) restingPlayers.append(playerChip(id, 0, interactive, selected, true));
+  for (const id of match.resting) restingPlayers.append(playerChip(id, match.restStreakSnapshot?.[id] || 0, interactive, selected, true));
   rest.append(restingPlayers);
   card.append(teams, rest);
   return card;
@@ -67,12 +67,15 @@ function renderSettings(state) {
     const force = el('button', `force-button${state.forcedRest.includes(id) ? ' active' : ''}`, state.forcedRest.includes(id) ? '休息に指定中' : '休息を指定');
     force.type = 'button'; force.dataset.forceId = String(id); force.setAttribute('aria-pressed', state.forcedRest.includes(id) ? 'true' : 'false');
     row.append(force);
-    const select = el('select'); select.dataset.maxId = String(id); select.setAttribute('aria-label', `プレイヤー${id}の最大連続出場`);
-    for (const [value, label] of [['', '未設定'], ...Array.from({ length: 10 }, (_, i) => [String(i + 1), `${i + 1}試合`])]) {
-      const option = el('option', '', label); option.value = value; select.append(option);
+    const limits = el('div', 'max-streak-options');
+    for (const [value, label] of [[null, '未設定'], [1, '1試合'], [2, '2試合'], [3, '3試合'], [4, '4試合']]) {
+      const active = state.maxStreaks[id] === value;
+      const button = el('button', `max-streak-button${active ? ' active' : ''}`, label);
+      button.type = 'button'; button.dataset.maxId = String(id); button.dataset.maxValue = value === null ? '' : String(value);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      limits.append(button);
     }
-    select.value = state.maxStreaks[id] === null ? '' : String(state.maxStreaks[id]);
-    row.append(select); container.append(row);
+    row.append(limits); container.append(row);
   }
 }
 
