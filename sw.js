@@ -1,4 +1,4 @@
-const CACHE = 'tennis-randomizer-v40';
+const CACHE = 'tennis-randomizer-v42';
 const APP_FILES = [
   './', './index.html', './css/style.css', './js/app.js', './js/ui.js',
   './js/state.js', './js/storage.js', './js/matchGenerator.js', './js/scoring.js',

@@ -1,4 +1,4 @@
-import { pairKey } from './state.js?v=40';
+import { pairKey } from './state.js?v=42';
 
 // Lexicographic comparison keeps a lower-priority preference from outweighing a higher one.
 export function scorePlayers(state, selected) {

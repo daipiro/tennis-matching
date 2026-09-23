@@ -25,12 +25,12 @@ export function renderMatchCard(match, { latest = false, interactive = false, se
   const a = el('div', 'team'), b = el('div', 'team');
   for (const id of match.teamA) a.append(playerChip(id, match.streakSnapshot[id] || 0, interactive, selected));
   for (const id of match.teamB) b.append(playerChip(id, match.streakSnapshot[id] || 0, interactive, selected));
-  teams.append(a, el('span', 'vs', 'VS'), b);
   const rest = el('div', 'match-rest');
   const restingPlayers = el('div', 'roster-list match-rest-players');
   for (const id of match.resting) restingPlayers.append(playerChip(id, match.restStreakSnapshot?.[id] || 0, interactive, selected, true));
   rest.append(restingPlayers);
-  card.append(teams, rest);
+  teams.append(a, el('span', 'vs', 'VS'), b, rest);
+  card.append(teams);
   return card;
 }
 
