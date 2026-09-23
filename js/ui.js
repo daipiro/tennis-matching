@@ -19,49 +19,30 @@ function playerChip(id, streak, interactive, selected, resting = false) {
   return node;
 }
 
-export function renderMatchCard(match, { latest = false } = {}) {
+export function renderMatchCard(match, { latest = false, selected = null } = {}) {
   const card = el('article', `match-card ${latest ? 'latest-card' : 'past-card'}`);
   const heading = el('h3', '', `第${match.matchNumber}試合`);
   if (latest) heading.append(el('span', 'card-tag', '最新の試合'));
   card.append(heading);
   const teams = el('div', 'teams');
   const a = el('div', 'team'), b = el('div', 'team');
-  for (const id of match.teamA) a.append(playerChip(id, match.streakSnapshot[id] || 0, false));
-  for (const id of match.teamB) b.append(playerChip(id, match.streakSnapshot[id] || 0, false));
+  for (const id of match.teamA) a.append(playerChip(id, match.streakSnapshot[id] || 0, latest, selected));
+  for (const id of match.teamB) b.append(playerChip(id, match.streakSnapshot[id] || 0, latest, selected));
   teams.append(a, el('span', 'vs', 'VS'), b);
   const rest = el('div', 'match-rest');
-  rest.append(el('span', 'match-rest-label', '休息'));
   const restingPlayers = el('div', 'roster-list match-rest-players');
-  for (const id of match.resting) restingPlayers.append(playerChip(id, 0, false, null, true));
+  for (const id of match.resting) restingPlayers.append(playerChip(id, 0, latest, selected, true));
   rest.append(restingPlayers);
   card.append(teams, rest);
   return card;
 }
 
-function renderRoster(state, selected) {
-  const playing = $('#playing'), resting = $('#resting');
-  playing.replaceChildren(); resting.replaceChildren();
-  const latest = state.history.at(-1);
-  if (!latest) {
-    playing.append(el('p', 'empty', '試合を作成すると表示されます。'));
-    resting.append(el('p', 'settings-help', 'まだ休息プレイヤーはいません。'));
-    $('#playing-count').textContent = '0人';
-    $('#resting-count').textContent = '0人';
-    return;
-  }
-  const active = [...latest.teamA, ...latest.teamB].sort((a, b) => a - b);
-  for (const id of active) playing.append(playerChip(id, latest.streakSnapshot[id] || 0, true, selected));
-  for (const id of latest.resting) resting.append(playerChip(id, 0, true, selected, true));
-  $('#playing-count').textContent = `${active.length}人`;
-  $('#resting-count').textContent = `${latest.resting.length}人`;
-}
-
-function renderHistory(state) {
+function renderHistory(state, selected) {
   const container = $('#history'); container.replaceChildren();
   $('#history-count').textContent = `${state.history.length}試合`;
   if (!state.history.length) container.append(el('p', 'empty', 'まだ試合はありません。'));
   const latest = state.history.at(-1);
-  state.history.forEach(match => container.append(renderMatchCard(match, { latest: match === latest })));
+  state.history.forEach(match => container.append(renderMatchCard(match, { latest: match === latest, selected })));
 }
 
 function renderSettings(state) {
@@ -105,8 +86,7 @@ function renderStats(state) {
 }
 
 export function render(state, { selected = null } = {}) {
-  renderHistory(state);
-  renderRoster(state, selected);
+  renderHistory(state, selected);
   $('#undo-match').disabled = !state.history.length;
   $('#notice').textContent = state.notice || '';
   renderSettings(state); renderStats(state);

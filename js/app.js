@@ -1,12 +1,12 @@
 import { appendMatch, changeCount, newSession, setMaxStreak, swapLatest, toggleForcedRest, undoLatest } from './state.js';
 import { generateMatch } from './matchGenerator.js';
 import { loadState, saveState } from './storage.js';
-import { render } from './ui.js?v=7';
+import { render } from './ui.js?v=10';
 
 let state = loadState(), selected = null;
 const refresh = () => {
   render(state, { selected });
-  if (selected !== null) document.querySelector(`#playing [data-swap-id="${selected}"], #resting [data-swap-id="${selected}"]`)?.focus();
+  if (selected !== null) document.querySelector(`#history [data-swap-id="${selected}"]`)?.focus();
 };
 function commit(next) {
   state = next;
