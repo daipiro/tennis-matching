@@ -20,7 +20,7 @@ function playerChip(id, streak, interactive, selected, resting = false) {
 }
 
 export function renderMatchCard(match, { latest = false, interactive = false, selected = null } = {}) {
-  const card = el('article', `match-card ${latest ? 'latest-card' : 'past-card'}`);
+  const card = el('article', `match-card ${interactive ? 'next-card' : latest ? 'latest-card' : 'past-card'}`);
   const teams = el('div', 'teams');
   const a = el('div', 'team'), b = el('div', 'team');
   for (const id of match.teamA) a.append(playerChip(id, match.streakSnapshot[id] || 0, interactive, selected));
@@ -29,8 +29,9 @@ export function renderMatchCard(match, { latest = false, interactive = false, se
   const restingPlayers = el('div', 'roster-list match-rest-players');
   for (const id of match.resting) restingPlayers.append(playerChip(id, match.restStreakSnapshot?.[id] || 0, interactive, selected, true));
   rest.append(restingPlayers);
-  teams.append(a, el('span', 'vs', 'VS'), b, rest);
-  card.append(teams);
+  teams.append(a, el('span', 'vs', 'VS'), b);
+  if (interactive) card.append(teams, rest);
+  else { teams.append(rest); card.append(teams); }
   return card;
 }
 
