@@ -1,12 +1,23 @@
-import { appendMatch, changeCount, newSession, setMaxStreak, swapLatest, toggleForcedRest, undoLatest } from './state.js?v=24';
-import { generateMatch } from './matchGenerator.js?v=24';
-import { loadState, saveState } from './storage.js?v=24';
-import { render } from './ui.js?v=24';
+import { appendMatch, changeCount, newSession, setMaxStreak, toggleForcedRest, undoLatest } from './state.js?v=28';
+import { generateMatch } from './matchGenerator.js?v=28';
+import { loadState, saveState } from './storage.js?v=28';
+import { render } from './ui.js?v=28';
 
-let state = loadState(), selected = null;
-const refresh = () => {
-  render(state, { selected });
-  if (selected !== null) document.querySelector(`#history [data-swap-id="${selected}"]`)?.focus();
+let state = loadState(), nextMatch, selected = null;
+function createNextMatch() {
+  const selection = generateMatch(state);
+  const playing = [...selection.teamA, ...selection.teamB];
+  return {
+    ...selection,
+    matchNumber: state.history.length + 1,
+    resting: Array.from({ length: state.participantCount }, (_, index) => index + 1).filter(id => !playing.includes(id)),
+    streakSnapshot: Object.fromEntries(playing.map(id => [id, state.players[id].playStreak + 1]))
+  };
+}
+const refresh = ({ regenerateNext = true } = {}) => {
+  if (regenerateNext || !nextMatch) nextMatch = createNextMatch();
+  render(state, { nextMatch, selected });
+  if (selected !== null) document.querySelector(`#next-match-preview [data-swap-id="${selected}"]`)?.focus();
 };
 function commit(next) {
   state = next;
@@ -28,20 +39,37 @@ function showScreen() {
 }
 
 document.querySelector('#next-match').addEventListener('click', () => attempt(() => {
-  commit(appendMatch(state, generateMatch(state)));
+  commit(appendMatch(state, nextMatch));
   requestAnimationFrame(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }));
 }));
 document.querySelector('#undo-match').addEventListener('click', () => commit(undoLatest(state)));
 document.querySelector('#new-session').addEventListener('click', () => {
   if (window.confirm('履歴と統計を消して新しいセッションを開始しますか？')) commit(newSession(state));
 });
-document.querySelector('.app-shell').addEventListener('click', event => {
+document.querySelector('#next-match-preview').addEventListener('click', event => {
   const chip = event.target.closest('[data-swap-id]');
   if (!chip) return;
   const id = Number(chip.dataset.swapId);
-  if (selected === null) { selected = id; refresh(); }
-  else if (selected === id) { selected = null; refresh(); }
-  else attempt(() => commit(swapLatest(state, selected, id)));
+  if (selected === null) {
+    selected = id;
+    refresh({ regenerateNext: false });
+  } else if (selected === id) {
+    selected = null;
+    refresh({ regenerateNext: false });
+  } else {
+    const swap = players => players.map(player => player === selected ? id : player === id ? selected : player);
+    const teamA = swap(nextMatch.teamA), teamB = swap(nextMatch.teamB), resting = swap(nextMatch.resting);
+    const playing = [...teamA, ...teamB];
+    nextMatch = {
+      ...nextMatch,
+      teamA,
+      teamB,
+      resting,
+      streakSnapshot: Object.fromEntries(playing.map(player => [player, state.players[player].playStreak + 1]))
+    };
+    selected = null;
+    refresh({ regenerateNext: false });
+  }
 });
 document.querySelector('#settings').addEventListener('click', event => {
   const button = event.target.closest('[data-force-id]');

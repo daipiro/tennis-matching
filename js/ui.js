@@ -19,30 +19,35 @@ function playerChip(id, streak, interactive, selected, resting = false) {
   return node;
 }
 
-export function renderMatchCard(match, { latest = false, selected = null } = {}) {
+export function renderMatchCard(match, { latest = false, title = `第${match.matchNumber}試合`, interactive = false, selected = null } = {}) {
   const card = el('article', `match-card ${latest ? 'latest-card' : 'past-card'}`);
-  const heading = el('h3', '', `第${match.matchNumber}試合`);
+  const heading = el('h3', '', title);
   if (latest) heading.append(el('span', 'card-tag', '最新の試合'));
   card.append(heading);
   const teams = el('div', 'teams');
   const a = el('div', 'team'), b = el('div', 'team');
-  for (const id of match.teamA) a.append(playerChip(id, match.streakSnapshot[id] || 0, latest, selected));
-  for (const id of match.teamB) b.append(playerChip(id, match.streakSnapshot[id] || 0, latest, selected));
+  for (const id of match.teamA) a.append(playerChip(id, match.streakSnapshot[id] || 0, interactive, selected));
+  for (const id of match.teamB) b.append(playerChip(id, match.streakSnapshot[id] || 0, interactive, selected));
   teams.append(a, el('span', 'vs', 'VS'), b);
   const rest = el('div', 'match-rest');
   const restingPlayers = el('div', 'roster-list match-rest-players');
-  for (const id of match.resting) restingPlayers.append(playerChip(id, 0, latest, selected, true));
+  for (const id of match.resting) restingPlayers.append(playerChip(id, 0, interactive, selected, true));
   rest.append(restingPlayers);
   card.append(teams, rest);
   return card;
 }
 
-function renderHistory(state, selected) {
+function renderHistory(state) {
   const container = $('#history'); container.replaceChildren();
   $('#history-count').textContent = `${state.history.length}試合`;
   if (!state.history.length) container.append(el('p', 'empty', 'まだ試合はありません。'));
   const latest = state.history.at(-1);
-  state.history.forEach(match => container.append(renderMatchCard(match, { latest: match === latest, selected })));
+  state.history.forEach(match => container.append(renderMatchCard(match, { latest: match === latest })));
+}
+
+function renderNextMatch(nextMatch, selected) {
+  const container = $('#next-match-preview'); container.replaceChildren();
+  container.append(renderMatchCard(nextMatch, { interactive: true, selected }));
 }
 
 function renderSettings(state) {
@@ -85,8 +90,9 @@ function renderStats(state) {
   container.append(table);
 }
 
-export function render(state, { selected = null } = {}) {
-  renderHistory(state, selected);
+export function render(state, { nextMatch, selected = null } = {}) {
+  renderHistory(state);
+  renderNextMatch(nextMatch, selected);
   $('#undo-match').disabled = !state.history.length;
   renderSettings(state); renderStats(state);
 }
