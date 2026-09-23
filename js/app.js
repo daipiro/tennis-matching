@@ -1,7 +1,7 @@
-import { appendMatch, changeCount, newSession, setMaxStreak, swapLatest, toggleForcedRest, undoLatest } from './state.js?v=20';
-import { generateMatch } from './matchGenerator.js?v=20';
-import { loadState, saveState } from './storage.js?v=20';
-import { render } from './ui.js?v=20';
+import { appendMatch, changeCount, newSession, setMaxStreak, swapLatest, toggleForcedRest, undoLatest } from './state.js?v=24';
+import { generateMatch } from './matchGenerator.js?v=24';
+import { loadState, saveState } from './storage.js?v=24';
+import { render } from './ui.js?v=24';
 
 let state = loadState(), selected = null;
 const refresh = () => {
@@ -21,13 +21,16 @@ function attempt(action) {
 }
 
 function showScreen() {
-  const screen = location.hash === '#settings' ? 'settings' : location.hash === '#stats' ? 'stats' : 'match';
-  document.querySelector('#match-screen').hidden = screen !== 'match';
-  document.querySelector('#settings-screen').hidden = screen !== 'settings';
-  document.querySelector('#stats-screen').hidden = screen !== 'stats';
+  const showSettings = location.hash === '#settings' || location.hash === '#stats';
+  document.querySelector('#match-screen').hidden = showSettings;
+  document.querySelector('#settings-screen').hidden = !showSettings;
+  if (location.hash === '#stats') requestAnimationFrame(() => document.querySelector('#stats-title').scrollIntoView({ block: 'start' }));
 }
 
-document.querySelector('#next-match').addEventListener('click', () => attempt(() => commit(appendMatch(state, generateMatch(state)))));
+document.querySelector('#next-match').addEventListener('click', () => attempt(() => {
+  commit(appendMatch(state, generateMatch(state)));
+  requestAnimationFrame(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }));
+}));
 document.querySelector('#undo-match').addEventListener('click', () => commit(undoLatest(state)));
 document.querySelector('#new-session').addEventListener('click', () => {
   if (window.confirm('履歴と統計を消して新しいセッションを開始しますか？')) commit(newSession(state));
