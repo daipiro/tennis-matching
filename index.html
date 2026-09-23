@@ -14,15 +14,14 @@
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
   <title>テニス乱数表</title>
   <link rel="stylesheet" href="./css/style.css">
-  <script type="module" src="./js/app.js?v=10"></script>
+  <script type="module" src="./js/app.js?v=11"></script>
 </head>
 <body>
   <main class="app-shell">
     <header class="site-header"><div class="app-mark" aria-hidden="true">✦</div><div><p class="eyebrow">DOUBLES SESSION</p><h1>テニス乱数表</h1><p class="header-subtitle">今日のダブルスを、スムーズに。</p></div></header>
-    <section class="section history-section" aria-labelledby="history-title"><div class="section-heading"><h2 id="history-title">試合履歴</h2><span id="history-count" class="section-count"></span></div><div id="history" class="match-list"></div></section>
-    <section class="section operations" aria-label="試合操作"><button id="next-match" type="button" class="primary-button">次の試合を作成 <span aria-hidden="true">→</span></button><button id="undo-match" type="button" class="secondary-button">前の試合を取消</button><p id="notice" class="notice" role="status" aria-live="polite"></p></section>
-    <section class="section settings-section" aria-labelledby="settings-title"><div class="section-heading"><h2 id="settings-title">プレイヤー設定</h2></div><div id="settings"></div><button id="new-session" type="button" class="danger-button">新しいセッションを開始</button></section>
-    <section class="section stats-section" aria-labelledby="stats-title"><div class="section-heading"><h2 id="stats-title">統計</h2></div><div id="stats"></div></section>
+    <section id="match-screen" class="screen"><section class="section history-section" aria-labelledby="history-title"><div class="section-heading"><h2 id="history-title">試合履歴</h2><span id="history-count" class="section-count"></span></div><div id="history" class="match-list"></div></section><section class="section operations" aria-label="試合操作"><button id="next-match" type="button" class="primary-button">次の試合を作成 <span aria-hidden="true">→</span></button><button id="undo-match" type="button" class="secondary-button">前の試合を取消</button><p id="notice" class="notice" role="status" aria-live="polite"></p></section><nav class="screen-nav" aria-label="その他の画面"><a class="screen-link" href="#settings">プレイヤー設定</a><a class="screen-link" href="#stats">統計</a></nav></section>
+    <section id="settings-screen" class="screen settings-section" aria-labelledby="settings-title" hidden><a class="back-link" href="#">← 試合画面に戻る</a><div class="section-heading"><h2 id="settings-title">プレイヤー設定</h2></div><div id="settings"></div><button id="new-session" type="button" class="danger-button">新しいセッションを開始</button></section>
+    <section id="stats-screen" class="screen stats-section" aria-labelledby="stats-title" hidden><a class="back-link" href="#">← 試合画面に戻る</a><div class="section-heading"><h2 id="stats-title">統計</h2></div><div id="stats"></div></section>
   </main>
 </body>
 </html>

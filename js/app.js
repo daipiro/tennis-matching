@@ -1,7 +1,7 @@
 import { appendMatch, changeCount, newSession, setMaxStreak, swapLatest, toggleForcedRest, undoLatest } from './state.js';
 import { generateMatch } from './matchGenerator.js';
 import { loadState, saveState } from './storage.js';
-import { render } from './ui.js?v=10';
+import { render } from './ui.js?v=11';
 
 let state = loadState(), selected = null;
 const refresh = () => {
@@ -18,6 +18,13 @@ function commit(next) {
 function attempt(action) {
   try { action(); }
   catch (error) { state = { ...state, notice: error.message || '操作を完了できませんでした。' }; refresh(); }
+}
+
+function showScreen() {
+  const screen = location.hash === '#settings' ? 'settings' : location.hash === '#stats' ? 'stats' : 'match';
+  document.querySelector('#match-screen').hidden = screen !== 'match';
+  document.querySelector('#settings-screen').hidden = screen !== 'settings';
+  document.querySelector('#stats-screen').hidden = screen !== 'stats';
 }
 
 document.querySelector('#next-match').addEventListener('click', () => attempt(() => commit(appendMatch(state, generateMatch(state)))));
@@ -41,6 +48,8 @@ document.querySelector('#settings').addEventListener('change', event => {
   if (event.target.id === 'participant-count') attempt(() => commit(changeCount(state, Number(event.target.value))));
   else if (event.target.matches('[data-max-id]')) attempt(() => commit(setMaxStreak(state, Number(event.target.dataset.maxId), event.target.value === '' ? null : Number(event.target.value))));
 });
+window.addEventListener('hashchange', showScreen);
+showScreen();
 refresh();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
