@@ -8,7 +8,7 @@ const el = (tag, className, content) => {
 };
 
 function playerChip(id, streak, interactive, selected, resting = false) {
-  const node = el(interactive ? 'button' : 'span', `player-chip streak-${Math.min(streak, 4)}${resting ? ' rest-chip' : ''}${selected === id ? ' selected' : ''}`);
+  const node = el(interactive ? 'button' : 'span', `player-chip streak-${Math.min(streak, 4)}${resting ? ' rest-chip' : ''}${interactive && selected === id ? ' selected' : ''}`);
   node.append(el('span', 'player-number', circle(id)));
   if (streak > 0 && !resting) node.append(el('small', '', `×${streak}`));
   if (interactive) {
@@ -88,6 +88,5 @@ function renderStats(state) {
 export function render(state, { selected = null } = {}) {
   renderHistory(state, selected);
   $('#undo-match').disabled = !state.history.length;
-  $('#notice').textContent = state.notice || '';
   renderSettings(state); renderStats(state);
 }
