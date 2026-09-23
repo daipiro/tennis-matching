@@ -1,0 +1,6 @@
+{
+  "name": "tennis-randomizer",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node test/app.test.js" }
+}
