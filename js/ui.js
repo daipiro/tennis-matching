@@ -20,13 +20,14 @@ function playerChip(id, streak, interactive, selected, resting = false) {
 }
 
 export function renderMatchCard(match, { latest = false, interactive = false, selected = null } = {}) {
-  const card = el('article', `match-card ${interactive ? 'next-card' : latest ? 'latest-card' : 'past-card'}`);
+  const noRest = match.resting.length === 0;
+  const card = el('article', `match-card ${interactive ? 'next-card' : latest ? 'latest-card' : 'past-card'}${noRest ? ' no-rest-card' : ''}`);
   const teams = el('div', 'teams');
   const a = el('div', 'team'), b = el('div', 'team');
   for (const id of match.teamA) a.append(playerChip(id, match.streakSnapshot[id] || 0, interactive, selected));
   for (const id of match.teamB) b.append(playerChip(id, match.streakSnapshot[id] || 0, interactive, selected));
   teams.append(a, el('span', 'vs', 'VS'), b);
-  if (!match.resting.length) {
+  if (noRest) {
     card.append(teams);
     return card;
   }
