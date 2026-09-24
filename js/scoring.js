@@ -21,13 +21,30 @@ export function scorePlayers(state, selected) {
   const minMatches = Math.min(...prospectiveMatches), minRests = Math.min(...prospectiveRests);
   matchImbalance = prospectiveMatches.reduce((sum, value) => sum + (value - minMatches) ** 2, 0);
   restImbalance = prospectiveRests.reduce((sum, value) => sum + (value - minRests) ** 2, 0);
-  return [violated, excess, matchImbalance, restImbalance, consecutiveRest, restStreakPressure, playStreakPressure];
+  return { violated, excess, matchImbalance, restImbalance, consecutiveRest, restStreakPressure, playStreakPressure };
 }
 
 export function scoreTeams(state, teamA, teamB) {
   const pairValues = [state.pairCounts[pairKey(...teamA)] || 0, state.pairCounts[pairKey(...teamB)] || 0];
   const opponents = teamA.flatMap(a => teamB.map(b => state.opponentCounts[pairKey(a, b)] || 0));
-  return [Math.max(...pairValues), pairValues.reduce((a, b) => a + b, 0), Math.max(...opponents), opponents.reduce((a, b) => a + b, 0)];
+  return {
+    maxPairRepetition: Math.max(...pairValues),
+    pairRepetition: pairValues.reduce((a, b) => a + b, 0),
+    maxOpponentRepetition: Math.max(...opponents),
+    opponentRepetition: opponents.reduce((a, b) => a + b, 0)
+  };
+}
+
+export function scoreCandidate(state, selected, teamA, teamB) {
+  const players = scorePlayers(state, selected);
+  const teams = scoreTeams(state, teamA, teamB);
+  const upperPriority = [players.violated, players.excess, players.matchImbalance, players.restImbalance, players.playStreakPressure];
+  const teamPriority = [teams.maxPairRepetition, teams.pairRepetition, teams.maxOpponentRepetition, teams.opponentRepetition];
+  const restPriority = [players.consecutiveRest, players.restStreakPressure];
+  const score = state.participantCount === 8
+    ? [...upperPriority, ...teamPriority, ...restPriority]
+    : [...upperPriority.slice(0, 4), ...restPriority, upperPriority[4], ...teamPriority];
+  return { score, relaxed: players.violated > 0 };
 }
 
 export function compareScores(a, b) {
