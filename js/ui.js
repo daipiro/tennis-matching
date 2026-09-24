@@ -25,11 +25,15 @@ export function renderMatchCard(match, { latest = false, interactive = false, se
   const a = el('div', 'team'), b = el('div', 'team');
   for (const id of match.teamA) a.append(playerChip(id, match.streakSnapshot[id] || 0, interactive, selected));
   for (const id of match.teamB) b.append(playerChip(id, match.streakSnapshot[id] || 0, interactive, selected));
+  teams.append(a, el('span', 'vs', 'VS'), b);
+  if (!match.resting.length) {
+    card.append(teams, el('p', 'match-rest-empty', '休息者なし'));
+    return card;
+  }
   const rest = el('div', 'match-rest');
   const restingPlayers = el('div', 'roster-list match-rest-players');
   for (const id of match.resting) restingPlayers.append(playerChip(id, match.restStreakSnapshot?.[id] || 0, interactive, selected, true));
   rest.append(restingPlayers);
-  teams.append(a, el('span', 'vs', 'VS'), b);
   if (interactive) card.append(teams, rest);
   else { teams.append(rest); card.append(teams); }
   return card;
@@ -51,10 +55,10 @@ function renderSettings(state) {
   const container = $('#settings'); container.replaceChildren();
   const countLabel = el('label', 'count-setting', '参加人数');
   const count = el('select'); count.id = 'participant-count';
-  for (const n of [5, 6, 7]) { const option = el('option', '', `${n}人`); option.value = String(n); count.append(option); }
+  for (const n of [4, 5, 6, 7, 8]) { const option = el('option', '', `${n}人`); option.value = String(n); count.append(option); }
   count.value = String(state.participantCount);
   countLabel.append(count); container.append(countLabel);
-  container.append(el('p', 'settings-help', '強制休息は次の1試合のみ。上限は未設定なら制限なし。'));
+  container.append(el('p', 'settings-help', state.participantCount === 4 ? '4人参加時は全員が出場するため、強制休息は指定できません。上限は未設定なら制限なし。' : '強制休息は次の1試合のみ。上限は未設定なら制限なし。'));
   const head = el('div', 'setting-head');
   ['番号', '次試合の休息', '連続出場上限'].forEach(label => head.append(el('span', '', label)));
   container.append(head);
@@ -62,7 +66,9 @@ function renderSettings(state) {
     const row = el('div', 'setting-row');
     row.append(el('strong', 'setting-number', circle(id)));
     const force = el('button', `force-button${state.forcedRest.includes(id) ? ' active' : ''}`, state.forcedRest.includes(id) ? '休息に指定中' : '休息を指定');
-    force.type = 'button'; force.dataset.forceId = String(id); force.setAttribute('aria-pressed', state.forcedRest.includes(id) ? 'true' : 'false');
+    force.type = 'button'; force.dataset.forceId = String(id); force.disabled = state.participantCount === 4;
+    force.title = state.participantCount === 4 ? '4人参加時は強制休息を指定できません' : '';
+    force.setAttribute('aria-pressed', state.forcedRest.includes(id) ? 'true' : 'false');
     row.append(force);
     const limits = el('div', 'max-streak-options');
     for (const [value, label] of [[null, '未設定'], [1, '1試合'], [2, '2試合'], [3, '3試合'], [4, '4試合']]) {
@@ -95,4 +101,7 @@ export function render(state, { nextMatch, selected = null } = {}) {
   renderNextMatch(nextMatch, selected);
   $('#undo-match').disabled = !state.history.length;
   renderSettings(state); renderStats(state);
+  const notice = $('#notice');
+  notice.textContent = state.notice || '';
+  notice.hidden = !state.notice;
 }

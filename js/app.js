@@ -1,4 +1,4 @@
-import { appendMatch, changeCount, newSession, setMaxStreak, toggleForcedRest, undoLatest } from './state.js';
+import { activeIds, appendMatch, changeCount, newSession, setMaxStreak, toggleForcedRest, undoLatest } from './state.js';
 import { generateMatch } from './matchGenerator.js';
 import { loadState, saveState } from './storage.js';
 import { render } from './ui.js';
@@ -10,9 +10,9 @@ function createNextMatch() {
   return {
     ...selection,
     matchNumber: state.history.length + 1,
-    resting: Array.from({ length: state.participantCount }, (_, index) => index + 1).filter(id => !playing.includes(id)),
+    resting: activeIds(state).filter(id => !playing.includes(id)),
     streakSnapshot: Object.fromEntries(playing.map(id => [id, state.players[id].playStreak + 1])),
-    restStreakSnapshot: Object.fromEntries(Array.from({ length: state.participantCount }, (_, index) => index + 1).filter(id => !playing.includes(id)).map(id => [id, state.players[id].restStreak + 1]))
+    restStreakSnapshot: Object.fromEntries(activeIds(state).filter(id => !playing.includes(id)).map(id => [id, state.players[id].restStreak + 1]))
   };
 }
 const refresh = ({ regenerateNext = true } = {}) => {
