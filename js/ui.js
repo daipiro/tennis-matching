@@ -27,7 +27,7 @@ export function renderMatchCard(match, { latest = false, interactive = false, se
   for (const id of match.teamB) b.append(playerChip(id, match.streakSnapshot[id] || 0, interactive, selected));
   teams.append(a, el('span', 'vs', 'VS'), b);
   if (!match.resting.length) {
-    card.append(teams, el('p', 'match-rest-empty', '休息者なし'));
+    card.append(teams);
     return card;
   }
   const rest = el('div', 'match-rest');
