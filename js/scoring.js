@@ -42,7 +42,7 @@ export function scoreCandidate(state, selected, teamA, teamB) {
   const teamPriority = [teams.maxPairRepetition, teams.pairRepetition, teams.maxOpponentRepetition, teams.opponentRepetition];
   const restPriority = [players.consecutiveRest, players.restStreakPressure];
   const score = state.participantCount === 8
-    ? [...upperPriority, ...teamPriority, ...restPriority]
+    ? [...upperPriority.slice(0, 4), ...teamPriority, upperPriority[4], ...restPriority]
     : [...upperPriority.slice(0, 4), ...restPriority, upperPriority[4], ...teamPriority];
   return { score, relaxed: players.violated > 0 };
 }

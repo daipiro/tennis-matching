@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createInitialState, pairKey, setMaxStreak, toggleForcedRest } from '../js/state.js';
+import { appendMatch, createInitialState, pairKey, setMaxStreak, toggleForcedRest } from '../js/state.js';
 import { generateMatch } from '../js/matchGenerator.js';
 
 const playing = match => [...match.teamA, ...match.teamB];
@@ -61,7 +61,7 @@ test('8人時も強制休息と最大連続出場上限を優先する', () => {
   assert.equal(playing(generateMatch(limited, () => 0)).includes(1), false);
 });
 
-test('8人時も累計均等と連続出場の偏りをペア重複より優先する', () => {
+test('8人時も累計均等をペア重複より優先する', () => {
   const repeatedPairs = Object.fromEntries([[5, 6], [5, 7], [5, 8], [6, 7], [6, 8], [7, 8]].map(([a, b]) => [pairKey(a, b), 100]));
   const base = createInitialState(8);
   const imbalanced = {
@@ -75,7 +75,10 @@ test('8人時も累計均等と連続出場の偏りをペア重複より優先�
   const balancedMatch = generateMatch(imbalanced, () => 0);
   assert.deepEqual(playing(balancedMatch).sort((a, b) => a - b), [5, 6, 7, 8]);
   assert.ok(pairRepetition(imbalanced, balancedMatch) > 0);
+});
 
+test('8人時は連続出場の偏りよりペア重複回避を優先する', () => {
+  const base = createInitialState(8);
   const streakBiased = {
     ...base,
     players: Object.fromEntries(Object.entries(base.players).map(([id, player]) => [id, {
@@ -85,8 +88,19 @@ test('8人時も累計均等と連続出場の偏りをペア重複より優先�
     pairCounts: Object.fromEntries([[1, 2], [1, 3], [1, 4], [2, 3], [2, 4], [3, 4]].map(([a, b]) => [pairKey(a, b), 100]))
   };
   const streakMatch = generateMatch(streakBiased, () => 0);
-  assert.deepEqual(playing(streakMatch).sort((a, b) => a - b), [1, 2, 3, 4]);
-  assert.ok(pairRepetition(streakBiased, streakMatch) > 0);
+  assert.equal(pairRepetition(streakBiased, streakMatch), 0);
+  assert.ok(playing(streakMatch).some(id => streakBiased.players[id].playStreak > 0));
+});
+
+test('8人時は固定された4人組に留まらず20試合以内に全ペア・対戦相手を作る', () => {
+  const ids = Array.from({ length: 8 }, (_, index) => index + 1);
+  const allKeys = ids.flatMap((a, index) => ids.slice(index + 1).map(b => pairKey(a, b)));
+  let value = 1, state = createInitialState(8);
+  const random = () => ((value = (value * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+  for (let index = 0; index < 20; index++) state = appendMatch(state, generateMatch(state, random), index);
+
+  assert.deepEqual(allKeys.filter(key => !state.pairCounts[key]), []);
+  assert.deepEqual(allKeys.filter(key => !state.opponentCounts[key]), []);
 });
 
 test('4〜7人時は連続休息回避をペア重複回避より先に評価する', () => {
