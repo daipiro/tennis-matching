@@ -1,9 +1,14 @@
-const ids = [1, 2, 3, 4, 5, 6, 7];
+export const MIN_PARTICIPANTS = 4;
+export const MAX_PARTICIPANTS = 8;
+export const PLAYER_IDS = Array.from({ length: MAX_PARTICIPANTS }, (_, index) => index + 1);
+export const validParticipantCount = count => Number.isInteger(count) && count >= MIN_PARTICIPANTS && count <= MAX_PARTICIPANTS;
+
+const ids = PLAYER_IDS;
 export const pairKey = (a, b) => [a, b].sort((x, y) => x - y).join('-');
 const freshStats = () => ({ matches: 0, rests: 0, playStreak: 0, restStreak: 0 });
 
 export function createInitialState(participantCount = 5) {
-  if (![5, 6, 7].includes(participantCount)) throw new RangeError('参加人数は5〜7人です');
+  if (!validParticipantCount(participantCount)) throw new RangeError('参加人数は4〜8人です');
   return recompute({ initialCount: participantCount, participantCount, events: [], maxStreaks: Object.fromEntries(ids.map(id => [id, null])), forcedRest: [], notice: '' });
 }
 
@@ -53,7 +58,7 @@ export function recompute(state) {
 }
 
 export function changeCount(state, count) {
-  if (![5, 6, 7].includes(count)) throw new RangeError('参加人数は5〜7人です');
+  if (!validParticipantCount(count)) throw new RangeError('参加人数は4〜8人です');
   if (count === state.participantCount) return state;
   const forcedRest = state.forcedRest.filter(id => id <= count);
   while (count - forcedRest.length < 4) forcedRest.pop();
@@ -67,6 +72,7 @@ export function setMaxStreak(state, id, value) {
 
 export function toggleForcedRest(state, id) {
   if (!activeIds(state).includes(id)) throw new RangeError('参加していないプレイヤーです');
+  if (state.participantCount === MIN_PARTICIPANTS) throw new RangeError('4人参加時は強制休息を指定できません。');
   const forcedRest = state.forcedRest.includes(id) ? state.forcedRest.filter(other => other !== id) : [...state.forcedRest, id].sort((a, b) => a - b);
   if (state.participantCount - forcedRest.length < 4) throw new RangeError('出場できる人が4人未満になるため指定できません。');
   return recompute({ ...state, forcedRest, notice: '' });
