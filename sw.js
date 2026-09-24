@@ -1,8 +1,8 @@
-const CACHE = 'tennis-randomizer-v55';
+const CACHE = 'tennis-randomizer-v57';
 const APP_FILES = [
   './', './index.html', './css/style.css', './js/app.js', './js/ui.js',
   './js/state.js', './js/storage.js', './js/matchGenerator.js', './js/scoring.js',
-  './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png',
+  './manifest.webmanifest', './icons/icon-192.png',
   './icons/icon-512.png', './icons/apple-touch-icon.png'
 ];
 
